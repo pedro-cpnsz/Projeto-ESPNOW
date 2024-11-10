@@ -2,13 +2,15 @@
 #include <espnow.h>
 
 #define ESPNOW_WIFI_CHANNEL 1
+#define BUTTON_1_PIN 1
+#define BUTTON_2_PIN 2
 
-uint8_t broadcastAddress[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };  //Genérico
+uint8_t broadcastAddress[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }; // Genérico
 // uint8_t broadcastAddress[] = {0x24, 0x0A, 0xC4, 0x0B, 0x52, 0x64}; //ESP32 Riscado
 // uint8_t broadcastAddress[] = {0x24, 0x0A, 0xC4, 0x08, 0xD3, 0xA0};
 
 typedef struct struct_message {
-  String m;
+  char m[2];
 } struct_message;
 
 struct_message data;
@@ -21,12 +23,10 @@ void OnDataSent(uint8_t *macAddr, uint8_t sendStatus) {
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial) {
-    delay(10);
-  }
+  delay(100);
 
-  pinMode(0, INPUT_PULLUP);
-  pinMode(2, INPUT_PULLUP);
+  pinMode(BUTTON_1_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_2_PIN, INPUT_PULLUP);
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -49,23 +49,20 @@ void setup() {
     Serial.println("Erro ao adicionar o peer de broadcast");
     return;
   }
-
 }
 
 void loop() {
-
-  if (digitalRead(0) == LOW) {
+  if (digitalRead(BUTTON_1_PIN) == LOW) {
     Serial.println("Botao 1 pressionado!");
-    data.m = "1";
+    strcpy(data.m, "1");
     esp_now_send(broadcastAddress, (uint8_t *)&data, sizeof(data));
-    delay(500);
+    delay(500);  // Debounce simples
   }
 
-  if (digitalRead(2) == LOW) {
+  if (digitalRead(BUTTON_2_PIN) == LOW) {
     Serial.println("Botao 2 pressionado!");
-    data.m = "2";
+    strcpy(data.m, "2");
     esp_now_send(broadcastAddress, (uint8_t *)&data, sizeof(data));
-    delay(500);
+    delay(500);  // Debounce simples
   }
-
 }
